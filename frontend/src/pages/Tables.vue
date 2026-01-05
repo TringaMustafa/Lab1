@@ -1,118 +1,143 @@
 ﻿<template>
-  <div>
-    <h1 class="text-4xl font-bold mb-8 text-gray-800">Table Management</h1>
 
-    <!-- Status Legend -->
-    <div class="flex gap-6 mb-8 flex-wrap">
-      <div class="flex items-center gap-2">
-        <div class="w-6 h-6 bg-green-500 rounded"></div>
-        <span class="text-sm font-semibold">Available</span>
+<!-- NAVBAR TRANSPARENT SI HOME -->
+<header class="absolute top-0 left-0 w-full z-50 bg-transparent text-white">
+  <div class="max-w-6xl mx-auto flex justify-between items-center py-6 px-4 md:px-0">
+
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-2xl bg-gold flex items-center justify-center text-black text-xl">
+        🍽️
       </div>
-      <div class="flex items-center gap-2">
-        <div class="w-6 h-6 bg-red-500 rounded"></div>
-        <span class="text-sm font-semibold">Occupied</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="w-6 h-6 bg-yellow-500 rounded"></div>
-        <span class="text-sm font-semibold">Reserved</span>
-      </div>
+      <span class="text-2xl font-bold tracking-wide text-gold">TableFlow</span>
     </div>
 
-    <!-- Tables Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      <div 
-        v-for="table in tables" 
-        :key="table.id"
-        @click="selectTable(table)"
-        class="p-6 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer border-2"
-        :class="getTableClass(table.status)"
+    <nav class="flex items-center gap-6 text-sm md:text-base">
+      <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
+      <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
+      <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
+
+      <RouterLink
+        to="/login"
+        class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
       >
-        <div class="text-center">
-          <div class="text-4xl mb-2">🪑</div>
-          <div class="text-2xl font-bold mb-2">{{ table.name }}</div>
-          <div class="text-sm text-gray-600 mb-3">{{ table.seats }} seats</div>
-          <span class="text-xs font-semibold px-3 py-1 rounded-full" :class="getStatusBadge(table.status)">
-            {{ table.status }}
-          </span>
-        </div>
-      </div>
-    </div>
+        Login
+      </RouterLink>
+    </nav>
 
-    <!-- Table Detail Modal -->
-    <div v-if="selectedTableData" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 class="text-2xl font-bold mb-4">{{ selectedTableData.name }}</h2>
-        <div class="space-y-4 mb-6">
-          <div>
-            <span class="text-gray-600">Seats:</span>
-            <span class="font-semibold ml-2">{{ selectedTableData.seats }}</span>
-          </div>
-          <div>
-            <span class="text-gray-600">Status:</span>
-            <span class="font-semibold ml-2">{{ selectedTableData.status }}</span>
-          </div>
+  </div>
+</header>
+
+
+
+
+
+  <!-- BACKGROUND -->
+<div class="min-h-screen bg-gradient-to-b from-black via-slate-900 to-zinc-900 text-white pt-28">
+    <div class="max-w-6xl mx-auto px-4 py-10">
+
+      <!-- HEADER (zbritur me pt-20) -->
+      <div class="pt-20 flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+        <div>
+          <h1 class="text-3xl md:text-4xl font-bold">
+            Disponueshmëria e
+            <span class="text-gold">tavolinave</span>
+          </h1>
+
+          <p class="text-gray-300 mt-2 text-sm md:text-base max-w-xl">
+            Shiko cilat tavolina janë të lira, të zëna apo të rezervuara. 
+            Për të bërë rezervim, së pari hyr ose krijo llogari.
+          </p>
         </div>
-        <div class="flex gap-4">
-          <button 
-            @click="createOrder"
-            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
-          >
-            New Order
-          </button>
-          <button 
-            @click="selectedTableData = null"
-            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-semibold transition"
-          >
-            Close
-          </button>
+
+        <p
+          v-if="!isLogged"
+          class="text-xs md:text-sm px-4 py-2 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/40"
+        >
+          ⚠ Nuk mund të bësh rezervim pa u futur në llogari.
+        </p>
+      </div>
+
+
+
+      <!-- TABLES GRID -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div
+          v-for="t in tables"
+          :key="t.id"
+          class="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col justify-between hover:border-gold/60 transition"
+        >
+          <div>
+            <p class="text-lg font-semibold">Tavolina {{ t.name }}</p>
+            <p class="text-xs text-gray-400 mt-1">{{ t.seats }} vende</p>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <span
+              class="px-3 py-1 rounded-full text-xs font-semibold"
+              :class="statusClass(t.status)"
+            >
+              {{ t.status }}
+            </span>
+
+            <button
+              @click="handleReserve(t)"
+              class="px-3 py-1 rounded-lg text-xs font-semibold border border-gold text-gold hover:bg-gold hover:text-black transition"
+            >
+              Rezervo
+            </button>
+          </div>
         </div>
       </div>
+
+
     </div>
   </div>
+
 </template>
 
+
+
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../store/auth'
 
 const router = useRouter()
-const selectedTableData = ref(null)
+const auth = useAuthStore()
+const isLogged = computed(() => auth.isLogged())
 
 const tables = ref([
-  { id: 1, name: 'Table 1', seats: 2, status: 'Available' },
-  { id: 2, name: 'Table 2', seats: 4, status: 'Occupied' },
-  { id: 3, name: 'Table 3', seats: 2, status: 'Available' },
-  { id: 4, name: 'Table 4', seats: 6, status: 'Reserved' },
-  { id: 5, name: 'Table 5', seats: 4, status: 'Occupied' },
-  { id: 6, name: 'Table 6', seats: 8, status: 'Available' },
-  { id: 7, name: 'Table 7', seats: 2, status: 'Available' },
-  { id: 8, name: 'Table 8', seats: 4, status: 'Occupied' },
+  { id: 1, name: 'T1', seats: 2, status: 'E LIRË' },
+  { id: 2, name: 'T2', seats: 4, status: 'E ZËNË' },
+  { id: 3, name: 'T3', seats: 4, status: 'E REZERVUAR' },
+  { id: 4, name: 'T4', seats: 6, status: 'E LIRË' },
+  { id: 5, name: 'T5', seats: 2, status: 'DUKE U PASRTUAR' }
 ])
 
-function getTableClass(status) {
-  const classes = {
-    'Available': 'border-green-500 bg-green-50 hover:bg-green-100',
-    'Occupied': 'border-red-500 bg-red-50 hover:bg-red-100',
-    'Reserved': 'border-yellow-500 bg-yellow-50 hover:bg-yellow-100'
+function statusClass(status) {
+  if (status === 'E LIRË') return 'bg-emerald-500/15 text-emerald-300'
+  if (status === 'E ZËNË') return 'bg-rose-500/15 text-rose-300'
+  if (status === 'E REZERVUAR') return 'bg-blue-500/15 text-blue-300'
+  return 'bg-amber-500/15 text-amber-300'
+}
+
+function handleReserve(table) {
+  if (!isLogged.value) {
+    router.push({ path: '/login', query: { redirect: '/tables' } })
+    return
   }
-  return classes[status] || ''
-}
 
-function getStatusBadge(status) {
-  const classes = {
-    'Available': 'bg-green-200 text-green-800',
-    'Occupied': 'bg-red-200 text-red-800',
-    'Reserved': 'bg-yellow-200 text-yellow-800'
-  }
-  return classes[status] || ''
-}
-
-function selectTable(table) {
-  selectedTableData.value = table
-}
-
-function createOrder() {
-  alert(`Creating order for ${selectedTableData.value.name}`)
-  selectedTableData.value = null
+  alert(`(DEMO) Do të rezervosh: Tavolina ${table.name}`)
 }
 </script>
+
+
+
+<style scoped>
+.text-gold {
+  color: #d4af37;
+}
+.bg-gold {
+  background-color: #d4af37;
+}
+</style>

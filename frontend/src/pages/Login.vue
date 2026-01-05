@@ -1,53 +1,119 @@
 ﻿<template>
-  <div class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="bg-white p-8 rounded-lg shadow-md w-96">
-      <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
-      <form @submit.prevent="handle" class="space-y-4">
-        <input 
-          v-model="email" 
-          type="email"
-          placeholder="Email" 
-          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          required 
-        />
-        <input 
-          v-model="password" 
-          type="password"
-          placeholder="Password" 
-          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          required 
-        />
-        <button 
-          type="submit"
-          class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold"
+  <!-- NAVBAR TRANSPARENT -->
+  <header class="absolute top-0 left-0 w-full z-50 bg-transparent text-white">
+    <div class="max-w-6xl mx-auto flex justify-between items-center py-6 px-4 md:px-0">
+
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-gold flex items-center justify-center text-black text-xl">
+          🍽️
+        </div>
+        <span class="text-2xl font-bold tracking-wide text-gold">TableFlow</span>
+      </div>
+
+      <nav class="flex items-center gap-6 text-sm md:text-base">
+        <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
+        <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
+        <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
+
+        <RouterLink
+          to="/login"
+          class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
         >
           Login
-        </button>
-      </form>
-      <p v-if="err" class="text-red-600 mt-4 text-center">{{ err }}</p>
+        </RouterLink>
+      </nav>
+
     </div>
+  </header>
+
+  <!-- BACKGROUND -->
+  <div class="min-h-screen bg-gradient-to-b from-black via-slate-900 to-zinc-900 text-white">
+
+    <!-- CENTER FORM -->
+    <div class="flex justify-center items-start pt-40 w-full px-4">
+
+      <div class="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur">
+
+        <h1 class="text-2xl font-bold mb-2 text-center">
+          Mirësevjen në <span class="text-gold">TableFlow</span>
+        </h1>
+
+        <p class="text-gray-300 text-sm text-center mb-6">
+          Hyr në llogarinë tënde për të vazhduar.
+        </p>
+
+        <form @submit.prevent="handleLogin" class="space-y-4">
+          
+          <div>
+            <label class="block text-sm mb-1">Email</label>
+            <input v-model="email" type="email"
+              class="w-full px-3 py-2 rounded-lg bg-black/40 border border-gray-600 text-sm text-white focus:border-gold outline-none"
+              required />
+          </div>
+
+          <div>
+            <label class="block text-sm mb-1">Fjalëkalimi</label>
+            <input v-model="password" type="password"
+              class="w-full px-3 py-2 rounded-lg bg-black/40 border border-gray-600 text-sm text-white focus:border-gold outline-none"
+              required />
+          </div>
+
+          <button type="submit" :disabled="loading"
+            class="w-full mt-2 py-2.5 rounded-xl bg-gold text-black font-semibold text-sm hover:bg-yellow-400 disabled:opacity-60 transition">
+            {{ loading ? 'Duke u futur...' : 'Hyr' }}
+          </button>
+        </form>
+
+        <p class="text-xs text-gray-400 text-center mt-4">
+          Nuk ke llogari?
+          <RouterLink to="/register" class="text-gold hover:underline">Regjistrohu</RouterLink>
+        </p>
+
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '../store/auth'
+import { ref } from "vue"
+import { useRouter } from "vue-router"
+import { useAuthStore } from "../store/auth"
 
-const email = ref('')
-const password = ref('')
-const err = ref(null)
+const email = ref("")
+const password = ref("")
+const error = ref("")
+const loading = ref(false)
+
 const router = useRouter()
-const route = useRoute()
 const auth = useAuthStore()
 
-async function handle() {
+async function handleLogin() {
+  error.value = ""
+  loading.value = true
+
   try {
-    await auth.login(email.value, password.value)
-    const redirect = route.query.redirect || '/dashboard'
-    router.push(redirect)
+    const res = await auth.login(email.value, password.value)
+
+    // nëse është admin → /dashboard
+    if (res.data.user.role === "admin") {
+      router.push("/dashboard")
+    } 
+    // nëse është user → Home
+    else {
+      router.push("/")
+    }
+
   } catch (e) {
-    err.value = e.response?.data?.message || 'Login failed'
+    error.value = "Email ose fjalëkalim i pasaktë!"
   }
+
+  loading.value = false
 }
 </script>
+
+
+<style>
+.text-gold { color: #d4af37 }
+.bg-gold { background-color: #d4af37 }
+</style>

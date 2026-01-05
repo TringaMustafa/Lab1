@@ -1,89 +1,176 @@
 ﻿<template>
-  <div>
-    <h1 class="text-4xl font-bold mb-8 text-gray-800">Menu</h1>
 
-    <!-- Categories Filter -->
-    <div class="flex gap-4 mb-8 overflow-x-auto pb-4">
-      <button 
-        v-for="cat in categories" 
-        :key="cat"
-        @click="selectedCategory = cat"
-        class="px-6 py-2 rounded-full font-semibold whitespace-nowrap transition"
-        :class="selectedCategory === cat 
-          ? 'bg-blue-600 text-white' 
-          : 'bg-white text-gray-700 border border-gray-300 hover:border-blue-600'"
-      >
-        {{ cat }}
-      </button>
+<!-- NAVBAR TRANSPARENT SI HOME -->
+<header class="absolute top-0 left-0 w-full z-50 bg-transparent text-white">
+  <div class="max-w-6xl mx-auto flex justify-between items-center py-6 px-4 md:px-0">
+
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-2xl bg-gold flex items-center justify-center text-black text-xl">
+        🍽️
+      </div>
+      <span class="text-2xl font-bold tracking-wide text-gold">TableFlow</span>
     </div>
 
-    <!-- Menu Items Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div 
-        v-for="item in filteredItems" 
-        :key="item.id"
-        class="bg-white rounded-lg shadow-md hover:shadow-lg transition overflow-hidden"
+    <nav class="flex items-center gap-6 text-sm md:text-base">
+      <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
+      <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
+      <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
+
+      <RouterLink
+        to="/login"
+        class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
       >
-        <div class="h-48 bg-gradient-to-br from-blue-300 to-blue-500 flex items-center justify-center text-4xl">
-          {{ item.emoji }}
+        Login
+      </RouterLink>
+    </nav>
+
+  </div>
+</header>
+
+
+<div class="min-h-screen bg-gradient-to-b from-black via-slate-900 to-zinc-900 text-white pt-28">
+    <div class="max-w-6xl mx-auto px-4 py-10">
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+        <div>
+          <h1 class="text-3xl md:text-4xl font-bold">
+            Menuja jonë
+            <span class="text-gold">online</span>
+          </h1>
+          <p class="text-gray-300 mt-2 text-sm md:text-base max-w-xl">
+            Shfleto menunë e restorantit. Për të bërë porosi, së pari hyr ose regjistrohu në llogarinë tënde.
+          </p>
         </div>
-        <div class="p-6">
-          <h3 class="text-xl font-bold text-gray-800 mb-2">{{ item.name }}</h3>
-          <p class="text-gray-600 text-sm mb-4">{{ item.description }}</p>
-          <div class="flex items-center justify-between">
-            <span class="text-2xl font-bold text-blue-600">${{ item.price }}</span>
-            <button 
-              @click="addToCart(item)"
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition"
+
+        <p
+          v-if="!isLogged"
+          class="text-xs md:text-sm px-4 py-2 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/40"
+        >
+          ⚠ Nuk mund të porosisësh pa u futur në llogari.
+        </p>
+      </div>
+
+      <!-- Categories -->
+      <div class="flex gap-3 overflow-x-auto pb-2 mb-6">
+        <button
+          v-for="c in categories"
+          :key="c"
+          @click="activeCategory = c"
+          class="px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap transition"
+          :class="
+            activeCategory === c
+              ? 'bg-gold text-black border-gold'
+              : 'border-gray-600 text-gray-200 hover:bg-white/5'
+          "
+        >
+          {{ c }}
+        </button>
+      </div>
+
+      <!-- Menu items -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="item in filteredMenu"
+          :key="item.name"
+          class="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-gold/60 transition"
+        >
+          <div>
+            <h3 class="text-lg font-semibold">{{ item.name }}</h3>
+            <p class="text-xs text-gray-400 mt-1 uppercase tracking-wide">
+              {{ item.category }}
+            </p>
+            <p class="text-xs text-gray-400 mt-2">
+              {{ item.description }}
+            </p>
+          </div>
+
+          <div class="flex items-center justify-between mt-4">
+            <p class="text-xl font-bold text-gold">
+              €{{ item.price.toFixed(2) }}
+            </p>
+
+            <button
+              @click="handleOrder(item)"
+              class="px-4 py-2 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-yellow-400 transition"
             >
-              ➕ Add
+              Porosit
             </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Cart Summary (bottom sticky) -->
-    <div v-if="cart.length > 0" class="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-blue-600 p-6 shadow-lg">
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <div class="text-lg font-semibold">
-          Cart: {{ cart.length }} items - <span class="text-blue-600">${{ cartTotal }}</span>
-        </div>
-        <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition">
-          Proceed to Order
-        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../store/auth'
 
-const categories = ['All', 'Appetizers', 'Main Course', 'Desserts', 'Drinks']
-const selectedCategory = ref('All')
-const cart = ref([])
+const router = useRouter()
+const auth = useAuthStore()
 
-const items = ref([
-  { id: 1, name: 'Margherita Pizza', category: 'Main Course', price: 14.99, emoji: '🍕', description: 'Classic cheese and tomato' },
-  { id: 2, name: 'Caesar Salad', category: 'Appetizers', price: 8.50, emoji: '🥗', description: 'Fresh romaine with croutons' },
-  { id: 3, name: 'Grilled Salmon', category: 'Main Course', price: 22.99, emoji: '🐟', description: 'With seasonal vegetables' },
-  { id: 4, name: 'Chocolate Cake', category: 'Desserts', price: 7.99, emoji: '🍰', description: 'Rich and delicious' },
-  { id: 5, name: 'Coca Cola', category: 'Drinks', price: 2.99, emoji: '🥤', description: 'Cold beverage' },
-  { id: 6, name: 'Bruschetta', category: 'Appetizers', price: 6.99, emoji: '🍞', description: 'Toasted bread with toppings' },
+const isLogged = computed(() => auth.isLogged())
+
+const categories = ['Të gjitha', 'Pizza', 'Burger', 'Pasta', 'Saladë', 'Pije']
+
+const activeCategory = ref('Të gjitha')
+
+const menu = ref([
+  {
+    name: 'Margherita',
+    category: 'Pizza',
+    price: 6.5,
+    description: 'Domate, mocarela, borzilok i freskët.'
+  },
+  {
+    name: 'Chicken Burger',
+    category: 'Burger',
+    price: 7.0,
+    description: 'Burger pule, sallatë, sos shtëpie.'
+  },
+  {
+    name: 'Carbonara',
+    category: 'Pasta',
+    price: 8.0,
+    description: 'Pasta me pancetë, vezë dhe parmixhan.'
+  },
+  {
+    name: 'Caesar Salad',
+    category: 'Saladë',
+    price: 5.5,
+    description: 'Sallatë me mish pule, croutons dhe salcë Caesar.'
+  },
+  {
+    name: 'Cola',
+    category: 'Pije',
+    price: 2.0,
+    description: 'Pije freskuese.'
+  }
 ])
 
-const filteredItems = computed(() => {
-  return selectedCategory.value === 'All' 
-    ? items.value 
-    : items.value.filter(item => item.category === selectedCategory.value)
+const filteredMenu = computed(() => {
+  if (activeCategory.value === 'Të gjitha') return menu.value
+  return menu.value.filter(m => m.category === activeCategory.value)
 })
 
-const cartTotal = computed(() => {
-  return cart.value.reduce((sum, item) => sum + item.price, 0).toFixed(2)
-})
+function handleOrder(item) {
+  if (!isLogged.value) {
+    router.push({ path: '/login', query: { redirect: '/menu' } })
+    return
+  }
 
-function addToCart(item) {
-  cart.value.push(item)
+  // këtu më vonë lidhe me backend/cart
+  console.log('Order item', item)
+  alert(`(DEMO) Do të porosisje: ${item.name}`)
 }
 </script>
+
+<style scoped>
+.text-gold {
+  color: #d4af37;
+}
+.bg-gold {
+  background-color: #d4af37;
+}
+</style>
