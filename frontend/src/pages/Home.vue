@@ -15,12 +15,40 @@
         <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
         <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
 
-        <RouterLink
-          to="/login"
-          class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
-        >
-          Login
-        </RouterLink>
+<RouterLink
+  v-if="isLogged"
+  to="/cart"
+  class="relative ml-2 px-3 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition"
+  title="Cart"
+>
+  🛒
+  <span
+    v-if="cart.count"
+    class="absolute -top-2 -right-2 text-xs px-2 py-0.5 rounded-full bg-red-500 text-white"
+  >
+    {{ cart.count }}
+  </span>
+</RouterLink>
+
+
+ <!-- NËSE NUK ËSHTË LOGGED -->
+<RouterLink
+  v-if="!auth.isLogged()"
+  to="/login"
+  class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
+>
+  Login
+</RouterLink>
+
+<!-- NËSE ËSHTË LOGGED -->
+<button
+  v-else
+  @click="handleLogout"
+  class="ml-4 px-4 py-2 rounded-lg border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition"
+>
+  Logout
+</button>
+
       </nav>
     </header>
 
@@ -140,9 +168,25 @@
 </template>
 
 
-<script>
-export default {}
+<script setup>
+import { computed } from "vue"
+import { useAuthStore } from "../store/auth"
+import { useRouter } from "vue-router"
+import { useCartStore } from "../store/cart"
+
+const auth = useAuthStore()
+const router = useRouter()
+const cart = useCartStore()
+
+const isLogged = computed(() => auth.isLogged())
+
+async function handleLogout() {
+  await auth.logout()
+  router.push("/login")
+}
 </script>
+
+
 
 <style scoped>
 .text-gold {

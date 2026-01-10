@@ -8,61 +8,70 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    // (Obligative) këto janë protected, përveç login/register
+    public function __construct()
     {
-        // VALIDIMI
-        $request->validate([
-            'name'     => 'required|string',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'role'     => 'required|in:user,admin'
-        ]);
-
-        // Vetëm këta email mund të jenë admin
-        $allowedAdmins = ['admin1@example.com', 'admin2@example.com'];
-
-        if ($request->role === 'admin' && !in_array($request->email, $allowedAdmins)) {
-            return response()->json([
-                'message' => 'Ky email nuk është i autorizuar të regjistrohet si admin.'
-            ], 403);
-        }
-
-        // KRIJO USERIN
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role
-        ]);
-
-        return response()->json([
-            'message' => 'User registered successfully!',
-            'user'    => $user
-        ], 201);
+        $this->middleware('auth:api', ['except' => ['register', 'login']]);
     }
 
+   public function register(Request $request)
+{
+    $request->validate([
+        'name'     => 'required|string',
+        'email'    => 'required|email|unique:users,email',
+        'password' => 'required|min:6',
+    ]);
+
+    // ✅ gjithmonë user
+    $user = User::create([
+        'name'     => $request->name,
+        'email'    => $request->email,
+        'password' => Hash::make($request->password),
+        'role'     => 'user',
+    ]);
+
+    $token = auth('api')->login($user);
+
+    return response()->json([
+        'message' => 'User registered successfully!',
+        'user' => $user,
+        'token' => $token,
+        'token_type' => 'Bearer',
+        'expires_in' => auth('api')->factory()->getTTL() * 60,
+    ], 201);
+}
 
 
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'email'    => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        // kontrollo fjalëkalimin
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        // ✅ JWT attempt (nëse kredencialet janë ok, kthen token)
+        if (! $token = auth('api')->attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        // krijo token
-        $token = $user->createToken('apikey')->plainTextToken;
-
         return response()->json([
+            'user' => auth('api')->user(),
             'token' => $token,
-            'user'  => $user
+            'token_type' => 'Bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
         ]);
+    }
+
+    // ✅ obligative për route /me
+    public function me()
+    {
+        return response()->json(auth('api')->user());
+    }
+
+    // ✅ obligative për logout
+    public function logout()
+    {
+        auth('api')->logout();
+        return response()->json(['message' => 'Logged out']);
     }
 }

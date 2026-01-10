@@ -2,7 +2,6 @@
   <!-- NAVBAR TRANSPARENT -->
   <header class="absolute top-0 left-0 w-full z-50 bg-transparent text-white">
     <div class="max-w-6xl mx-auto flex justify-between items-center py-6 px-4 md:px-0">
-
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-2xl bg-gold flex items-center justify-center text-black text-xl">
           🍽️
@@ -15,23 +14,17 @@
         <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
         <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
 
-        <RouterLink
-          to="/login"
-          class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
-        >
+        <!-- Login button (gjithmonë në login page) -->
+        <span class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold">
           Login
-        </RouterLink>
+        </span>
       </nav>
-
     </div>
   </header>
 
   <!-- BACKGROUND -->
   <div class="min-h-screen bg-gradient-to-b from-black via-slate-900 to-zinc-900 text-white">
-
-    <!-- CENTER FORM -->
     <div class="flex justify-center items-start pt-40 w-full px-4">
-
       <div class="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur">
 
         <h1 class="text-2xl font-bold mb-2 text-center">
@@ -42,42 +35,56 @@
           Hyr në llogarinë tënde për të vazhduar.
         </p>
 
+        <!-- ERROR -->
+        <p v-if="error" class="text-rose-400 text-sm text-center mb-3">
+          {{ error }}
+        </p>
+
         <form @submit.prevent="handleLogin" class="space-y-4">
-          
           <div>
             <label class="block text-sm mb-1">Email</label>
-            <input v-model="email" type="email"
+            <input
+              v-model="email"
+              type="email"
+              required
               class="w-full px-3 py-2 rounded-lg bg-black/40 border border-gray-600 text-sm text-white focus:border-gold outline-none"
-              required />
+            />
           </div>
 
           <div>
             <label class="block text-sm mb-1">Fjalëkalimi</label>
-            <input v-model="password" type="password"
+            <input
+              v-model="password"
+              type="password"
+              required
               class="w-full px-3 py-2 rounded-lg bg-black/40 border border-gray-600 text-sm text-white focus:border-gold outline-none"
-              required />
+            />
           </div>
 
-          <button type="submit" :disabled="loading"
-            class="w-full mt-2 py-2.5 rounded-xl bg-gold text-black font-semibold text-sm hover:bg-yellow-400 disabled:opacity-60 transition">
-            {{ loading ? 'Duke u futur...' : 'Hyr' }}
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full mt-2 py-2.5 rounded-xl bg-gold text-black font-semibold text-sm hover:bg-yellow-400 disabled:opacity-60 transition"
+          >
+            {{ loading ? "Duke u futur..." : "Hyr" }}
           </button>
         </form>
 
         <p class="text-xs text-gray-400 text-center mt-4">
           Nuk ke llogari?
-          <RouterLink to="/register" class="text-gold hover:underline">Regjistrohu</RouterLink>
+          <RouterLink to="/register" class="text-gold hover:underline">
+            Regjistrohu
+          </RouterLink>
         </p>
 
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router"
 import { useAuthStore } from "../store/auth"
 
 const email = ref("")
@@ -86,6 +93,7 @@ const error = ref("")
 const loading = ref(false)
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 async function handleLogin() {
@@ -95,23 +103,25 @@ async function handleLogin() {
   try {
     const res = await auth.login(email.value, password.value)
 
-    // nëse është admin → /dashboard
+    // ADMIN → dashboard
     if (res.data.user.role === "admin") {
-      router.push("/dashboard")
-    } 
-    // nëse është user → Home
-    else {
-      router.push("/")
+      return router.push("/dashboard")
     }
 
-  } catch (e) {
-    error.value = "Email ose fjalëkalim i pasaktë!"
-  }
+    // USER → redirect (p.sh /menu) ose home
+    const redirect = route.query.redirect || "/"
+    router.push(redirect)
 
-  loading.value = false
+  } catch (e) {
+    error.value =
+      e?.response?.data?.message ||
+      e?.response?.data?.error ||
+      "Email ose fjalëkalim i pasaktë!"
+  } finally {
+    loading.value = false
+  }
 }
 </script>
-
 
 <style>
 .text-gold { color: #d4af37 }

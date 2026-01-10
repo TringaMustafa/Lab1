@@ -1,37 +1,70 @@
-﻿import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import api from '../api/axios'
+﻿import { defineStore } from "pinia"
+import { ref } from "vue"
+import api from "../api/axios"
 
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
-  const token = ref(localStorage.getItem('token') || null)
+export const useAuthStore = defineStore("auth", () => {
+  const user = ref(JSON.parse(localStorage.getItem("user") || "null"))
+
+  const savedToken = localStorage.getItem("token")
+  const token = ref(
+    savedToken && savedToken !== "null" && savedToken !== "undefined" ? savedToken : null
+  )
+
+  function isLogged() {
+    return !!token.value && token.value !== "null" && token.value !== "undefined"
+  }
 
   async function login(email, password) {
-    const res = await api.post('/login', { email, password })
+    const res = await api.post("/login", { email, password })
 
     token.value = res.data.token
     user.value = res.data.user
 
-    localStorage.setItem('token', token.value)
-    localStorage.setItem('user', JSON.stringify(user.value))
+    localStorage.setItem("token", token.value)
+    localStorage.setItem("user", JSON.stringify(user.value))
 
     return res
   }
 
-  async function register(name, email, password, role) {
-    return await api.post('/register', { name, email, password, role })
+  async function register(name, email, password) {
+    return await api.post("/register", { name, email, password })
   }
 
-  function logout() {
+  async function me() {
+    const res = await api.get("/me")
+    user.value = res.data
+    localStorage.setItem("user", JSON.stringify(user.value))
+    return res
+  }
+
+  async function logout() {
+    try { await api.post("/logout") } catch (e) {}
+
     token.value = null
     user.value = null
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
   }
 
-  function isLogged() {
-    return !!token.value
+  // ✅ KJO E ZGJIDH "Logout del menjehere"
+ async function init() {
+  if (!token.value) return
+
+  try {
+    await me()
+  } catch (e) {
+    // token invalid → pastro
+    token.value = null
+    user.value = null
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+  }
+}
+
+
+  function isAdmin() {
+    return user.value?.role === "admin"
   }
 
-  return { user, token, login, register, logout, isLogged }
+  return { user, token, login, register, me, logout, init, isLogged, isAdmin }
 })

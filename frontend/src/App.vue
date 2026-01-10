@@ -1,19 +1,20 @@
 ﻿<template>
-  <!-- Nëse rruga ka meta.layout = 'admin' → përdor AdminLayout -->
+  <!-- Nëse route ka meta.layout === 'admin' -->
   <AdminLayout v-if="isAdminLayout">
-    <router-view />
+    <RouterView />
   </AdminLayout>
 
-  <!-- Përndryshe, vetëm router-view pa sidebar (Home, Menu, Tables, Login...) -->
-  <router-view v-else />
+  <!-- Pages normale -->
+  <RouterView v-else />
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import AdminLayout from './layouts/AdminLayout.vue'
+import { computed } from "vue"
+import { useRoute } from "vue-router"
+import AdminLayout from "./layouts/AdminLayout.vue"
 
 const route = useRoute()
 
-const isAdminLayout = computed(() => route.meta.layout === 'admin')
+// kontrollon layout-in nga router meta
+const isAdminLayout = computed(() => route.meta.layout === "admin")
 </script>
