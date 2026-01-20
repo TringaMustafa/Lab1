@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,25 +19,16 @@ Route::post('/login', [AuthController::class, 'login']);
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:api')->group(function () {
-
-    // Auth
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN ROUTES (JWT + ADMIN ONLY)
-    |--------------------------------------------------------------------------
-    */
+    // ✅ USER (logged) - Place order
+    Route::post('/orders', [OrderController::class, 'store']);
+
     Route::middleware('is_admin')->group(function () {
-
-        // Dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
-
-        // CRUD routes (i shtojmë këtu)
-        // Route::apiResource('menus', MenuController::class);
-        // Route::apiResource('orders', OrderController::class);
-        // Route::apiResource('tables', TableController::class);
-        // Route::apiResource('reservations', ReservationController::class);
+        // ✅ admin orders list (ma vonë)
+        // Route::get('/admin/orders', [OrderController::class, 'index']);
     });
 });
+
