@@ -4,6 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
 
 
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin', function () {
+        return view('admin.dashboard');
+    });
+});
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes

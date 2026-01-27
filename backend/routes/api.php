@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MenuController;
+
+Route::middleware('auth:sanctum')->apiResource('menus', MenuController::class);
+
 
 /*
 |--------------------------------------------------------------------------
