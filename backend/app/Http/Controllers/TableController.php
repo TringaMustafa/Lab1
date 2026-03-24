@@ -7,18 +7,18 @@ use Illuminate\Http\Request;
 
 class TableController extends Controller
 {
-    // ✅ USER - list tables
+    // USER - list tables
     public function index()
     {
         return response()->json(Table::orderBy('id')->get());
     }
 
-    // ✅ USER - available tables
+    // USER - available tables
     public function available(Request $request)
     {
         $data = $request->validate([
             'date' => 'required|date',
-            'time' => 'required',               // "19:30"
+            'time' => 'required',
             'guests' => 'required|integer|min:1',
         ]);
 
@@ -30,7 +30,7 @@ class TableController extends Controller
             ->where('seats', '>=', $guests)
             ->whereDoesntHave('reservations', function ($q) use ($date, $time) {
                 $q->where('date', $date)
-                  ->whereTime('time', $time) // ✅ e zgjidh "19:30" vs "19:30:00"
+                  ->whereTime('time', $time)
                   ->whereIn('status', ['pending', 'confirmed']);
             })
             ->orderBy('id')
@@ -39,7 +39,53 @@ class TableController extends Controller
         return response()->json($tables);
     }
 
-    // ✅ ADMIN CRUD methods (store/show/update/destroy) – mbaji si i ke
+    // ADMIN - create table
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|min:1',
+            'seats' => 'required|integer|min:1',
+            'status' => 'required|in:free,occupied,reserved,cleaning',
+        ]);
 
-    
+        $table = Table::create($data);
+
+        return response()->json([
+            'message' => 'Table created successfully',
+            'data' => $table
+        ], 201);
+    }
+
+    // ADMIN - show one table
+    public function show(Table $table)
+    {
+        return response()->json($table);
+    }
+
+    // ADMIN - update table
+    public function update(Request $request, Table $table)
+    {
+        $data = $request->validate([
+            'name' => 'sometimes|required|string|min:1',
+            'seats' => 'sometimes|required|integer|min:1',
+            'status' => 'sometimes|required|in:free,occupied,reserved,cleaning',
+        ]);
+
+        $table->update($data);
+
+        return response()->json([
+            'message' => 'Table updated successfully',
+            'data' => $table
+        ]);
+    }
+
+    // ADMIN - delete table
+    public function destroy(Table $table)
+    {
+        $table->delete();
+
+        return response()->json([
+            'message' => 'Table deleted successfully'
+        ]);
+    }
 }

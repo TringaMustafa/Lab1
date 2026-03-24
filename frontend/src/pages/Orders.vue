@@ -1,117 +1,99 @@
 ﻿<template>
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold">Orders</h1>
 
-    <!-- LEFT SIDE: Categories + Menu -->
-    <div class="lg:col-span-3 space-y-6">
-
-      <!-- Categories -->
-      <div class="flex gap-3 overflow-x-auto pb-2">
-        <button 
-          v-for="c in categories"
-          :key="c"
-          @click="activeCategory = c"
-          class="px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap transition"
-          :class="activeCategory === c ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-100'"
-        >
-          {{ c }}
-        </button>
-      </div>
-
-      <!-- Menu Items -->
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-        <div
-          v-for="item in filteredMenu"
-          :key="item.name"
-          @click="addToCart(item)"
-          class="bg-white border rounded-2xl shadow hover:shadow-xl cursor-pointer transition p-4 flex flex-col"
-        >
-          <img 
-            :src="item.image"
-            class="h-32 w-full object-cover rounded-xl mb-3"
-          >
-          <h3 class="font-semibold text-lg">{{ item.name }}</h3>
-          <p class="text-sm text-gray-500">{{ item.category }}</p>
-          <p class="text-xl font-bold text-blue-600 mt-auto">${{ item.price }}</p>
-        </div>
-      </div>
-
+      <select v-model="statusFilter" @change="loadOrders" class="border rounded-xl px-3 py-2">
+        <option value="all">All</option>
+        <option value="pending">pending</option>
+        <option value="confirmed">confirmed</option>
+        <option value="completed">completed</option>
+        <option value="cancelled">cancelled</option>
+      </select>
     </div>
 
-    <!-- RIGHT SIDE: Cart -->
-    <div class="bg-white rounded-2xl shadow p-6 h-fit">
+    <div v-if="loading" class="text-sm text-gray-500">Loading...</div>
 
-      <h2 class="text-xl font-semibold mb-4">Your Order</h2>
+<div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden text-white">      <table class="w-full text-sm">
+<thead class="bg-white/5 text-left text-gray-300">          <tr>
+            <th class="p-3">#</th>
+            <th class="p-3">User</th>
+            <th class="p-3">Phone</th>
+            <th class="p-3">Total</th>
+            <th class="p-3">Status</th>
+            <th class="p-3">Payment</th>
+            <th class="p-3 text-right">Actions</th>
+          </tr>
+        </thead>
 
-      <div v-if="cart.length === 0" class="text-gray-400 text-sm">
-        No items yet.
-      </div>
+        <tbody>
+          <tr v-for="o in items" :key="o.id" class="border-t">
+            <td class="p-3">{{ o.id }}</td>
+            <td class="p-3">{{ o.user?.name || '—' }}</td>
+            <td class="p-3">{{ o.phone }}</td>
+            <td class="p-3">€{{ Number(o.total).toFixed(2) }}</td>
+            <td class="p-3">
+              <select
+                :value="o.status"
+                @change="updateStatus(o.id, $event.target.value)"
+                class="border rounded-lg px-2 py-1"
+              >
+                <option value="pending">pending</option>
+                <option value="confirmed">confirmed</option>
+                <option value="completed">completed</option>
+                <option value="cancelled">cancelled</option>
+              </select>
+            </td>
+            <td class="p-3">{{ o.payment_status }}</td>
+            <td class="p-3 text-right">
+              <button
+                @click="removeOrder(o.id)"
+                class="px-3 py-1 rounded-lg border border-rose-300 text-rose-600"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
 
-      <div v-for="(c, i) in cart" :key="i" class="flex justify-between items-center border-b py-3">
-        <div>
-          <p class="font-medium">{{ c.name }}</p>
-          <p class="text-sm text-gray-500">${{ c.price }}</p>
-        </div>
-
-        <button
-          @click="removeFromCart(i)"
-          class="text-red-500 hover:text-red-700"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div v-if="cart.length > 0" class="mt-4">
-        <p class="text-lg font-bold">Total: ${{ total }}</p>
-        <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl shadow">
-          Place Order
-        </button>
-      </div>
-
+          <tr v-if="!items.length">
+            <td class="p-4 text-gray-500" colspan="7">No orders found</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      activeCategory: "All",
+<script setup>
+import { onMounted, ref } from "vue"
+import api from "../api/axios"
 
-      categories: [
-        "All", "Pizza", "Drinks", "Burger", "Salad", "Dessert"
-      ],
+const loading = ref(false)
+const items = ref([])
+const statusFilter = ref("all")
 
-      menu: [
-        { name: "Margherita Pizza", category: "Pizza", price: 8.0, image: "https://picsum.photos/200" },
-        { name: "Pepsi", category: "Drinks", price: 2.0, image: "https://picsum.photos/201" },
-        { name: "Chicken Burger", category: "Burger", price: 6.5, image: "https://picsum.photos/202" },
-        { name: "Caesar Salad", category: "Salad", price: 5.5, image: "https://picsum.photos/203" },
-        { name: "Chocolate Cake", category: "Dessert", price: 4.0, image: "https://picsum.photos/204" },
-      ],
-
-      cart: []
-    };
-  },
-
-  computed: {
-    filteredMenu() {
-      if (this.activeCategory === "All") return this.menu;
-      return this.menu.filter(m => m.category === this.activeCategory);
-    },
-
-    total() {
-      return this.cart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
-    }
-  },
-
-  methods: {
-    addToCart(item) {
-      this.cart.push(item);
-    },
-    removeFromCart(i) {
-      this.cart.splice(i, 1);
-    }
+async function loadOrders() {
+  loading.value = true
+  try {
+    const res = await api.get("/orders", {
+      params: { status: statusFilter.value }
+    })
+    items.value = res.data.data ?? res.data
+  } finally {
+    loading.value = false
   }
-};
+}
+
+async function updateStatus(id, status) {
+  await api.put(`/orders/${id}`, { status })
+  await loadOrders()
+}
+
+async function removeOrder(id) {
+  if (!confirm("Delete this order?")) return
+  await api.delete(`/orders/${id}`)
+  await loadOrders()
+}
+
+onMounted(loadOrders)
 </script>

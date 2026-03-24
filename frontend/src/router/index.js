@@ -49,6 +49,11 @@ const routes = [
   component: AdminReservations,
   meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
 },
+{
+    path: "/admin-tables",
+    component: AdminTables,
+    meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
+  },
 
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ]

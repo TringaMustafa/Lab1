@@ -7,10 +7,8 @@
 
     <div v-if="loading" class="text-sm text-gray-500">Loading...</div>
 
-    <div v-else class="bg-white border rounded-2xl overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-left">
-          <tr>
+<div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden text-white">      <table class="w-full text-sm">
+<thead class="bg-white/5 text-left text-gray-300">          <tr>
             <th class="p-3">#</th>
             <th class="p-3">Name</th>
             <th class="p-3">Seats</th>
@@ -41,8 +39,8 @@
     </div>
 
     <!-- MODAL -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl w-full max-w-lg p-5">
+  <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+  <div class="bg-zinc-950 border border-white/10 rounded-2xl w-full max-w-lg p-5 text-white">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-semibold text-lg">{{ form.id ? "Edit Table" : "Create Table" }}</h2>
           <button @click="closeModal" class="text-gray-500">✕</button>
@@ -51,15 +49,28 @@
         <p v-if="error" class="text-sm text-rose-600 mb-3">{{ error }}</p>
 
         <div class="space-y-3">
-          <input v-model.trim="form.name" class="w-full border rounded-xl px-3 py-2" placeholder="Name (e.g. T1)" />
-          <input v-model.number="form.seats" type="number" class="w-full border rounded-xl px-3 py-2" placeholder="Seats" />
-          <select v-model="form.status" class="w-full border rounded-xl px-3 py-2">
-            <option value="free">free</option>
-            <option value="occupied">occupied</option>
-            <option value="reserved">reserved</option>
-            <option value="cleaning">cleaning</option>
-          </select>
+          <input
+  v-model.trim="form.name"
+  class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2"
+  placeholder="Name (e.g. T1)"
+/>
 
+<input
+  v-model.number="form.seats"
+  type="number"
+  class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2"
+  placeholder="Seats"
+/>
+
+<select
+  v-model="form.status"
+  class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2"
+>
+  <option value="free" class="text-black">free</option>
+  <option value="occupied" class="text-black">occupied</option>
+  <option value="reserved" class="text-black">reserved</option>
+  <option value="cleaning" class="text-black">cleaning</option>
+</select>
           <button @click="submit" :disabled="saving" class="w-full py-2 rounded-xl bg-black text-white disabled:opacity-60">
             {{ saving ? "Saving..." : "Save" }}
           </button>

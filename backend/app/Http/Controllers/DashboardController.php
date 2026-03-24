@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Models\Table;
 use App\Models\Order;
@@ -17,6 +16,7 @@ class DashboardController extends Controller
             'todayReservations' => Reservation::whereDate('created_at', now()->toDateString())->count(),
             'totalTables' => Table::count(),
             'totalMenus' => Menu::count(),
+            'totalRevenue' => Order::where('payment_status', 'paid')->sum('total'),
         ]);
     }
 }

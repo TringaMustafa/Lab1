@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6">
+  <div class="p-6 text-white">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold">Menus</h1>
 
-      <button @click="openCreate" class="px-4 py-2 rounded-xl bg-black text-white">
+      <button @click="openCreate" class="px-4 py-2 rounded-xl bg-gold text-black font-semibold">
         + Add Menu
       </button>
     </div>
@@ -12,29 +12,31 @@
       <input
         v-model="q"
         @keyup.enter="load"
-        class="border rounded-xl px-3 py-2 w-full md:w-80"
+        class="border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 w-full md:w-80"
         placeholder="Search by name..."
       />
 
-      <select v-model="category" @change="load" class="border rounded-xl px-3 py-2 w-full md:w-56">
-        <option value="all">All categories</option>
-        <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+      <select v-model="category" @change="load" class="border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 w-full md:w-56">
+        <option value="all" class="text-black">All categories</option>
+        <option v-for="c in categories" :key="c" :value="c" class="text-black">{{ c }}</option>
       </select>
 
-      <select v-model="available" @change="load" class="border rounded-xl px-3 py-2 w-full md:w-56">
-        <option :value="null">All</option>
-        <option :value="1">Available</option>
-        <option :value="0">Not available</option>
+      <select v-model="available" @change="load" class="border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 w-full md:w-56">
+        <option :value="null" class="text-black">All</option>
+        <option :value="1" class="text-black">Available</option>
+        <option :value="0" class="text-black">Not available</option>
       </select>
 
-      <button @click="load" class="border rounded-xl px-4 py-2">Filter</button>
+      <button @click="load" class="border border-white/10 rounded-xl px-4 py-2 hover:bg-white/10 transition">
+        Filter
+      </button>
     </div>
 
-    <div v-if="loading" class="text-sm text-gray-500">Loading...</div>
+    <div v-if="loading" class="text-sm text-gray-400">Loading...</div>
 
-    <div v-else class="bg-white border rounded-2xl overflow-hidden">
+    <div v-else class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden text-white">
       <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-left">
+        <thead class="bg-white/5 text-left text-gray-300">
           <tr>
             <th class="p-3">#</th>
             <th class="p-3">Name</th>
@@ -46,7 +48,7 @@
         </thead>
 
         <tbody>
-          <tr v-for="m in items" :key="m.id" class="border-t">
+          <tr v-for="m in items" :key="m.id" class="border-t border-white/10">
             <td class="p-3">{{ m.id }}</td>
             <td class="p-3">{{ m.name }}</td>
             <td class="p-3">{{ m.category ?? "-" }}</td>
@@ -54,17 +56,19 @@
             <td class="p-3">
               <span
                 class="px-2 py-1 rounded-full text-xs"
-                :class="m.is_available ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'"
+                :class="m.is_available ? 'bg-green-500/15 text-green-300' : 'bg-rose-500/15 text-rose-300'"
               >
                 {{ m.is_available ? "Yes" : "No" }}
               </span>
             </td>
 
             <td class="p-3 text-right flex justify-end gap-2">
-              <button @click="openEdit(m)" class="px-3 py-1 rounded-lg border">Edit</button>
+              <button @click="openEdit(m)" class="px-3 py-1 rounded-lg border border-white/20 hover:bg-white/10 transition">
+                Edit
+              </button>
               <button
                 @click="remove(m.id)"
-                class="px-3 py-1 rounded-lg border border-rose-300 text-rose-600"
+                class="px-3 py-1 rounded-lg border border-rose-400 text-rose-400 hover:bg-rose-500/10 transition"
               >
                 Delete
               </button>
@@ -72,7 +76,7 @@
           </tr>
 
           <tr v-if="!items.length">
-            <td class="p-4 text-gray-500" colspan="6">No data</td>
+            <td class="p-4 text-gray-400" colspan="6">No data</td>
           </tr>
         </tbody>
       </table>
@@ -80,40 +84,40 @@
 
     <!-- MODAL -->
     <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl w-full max-w-lg p-5">
+      <div class="bg-zinc-950 border border-white/10 rounded-2xl w-full max-w-lg p-5 text-white">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-semibold text-lg">{{ form.id ? "Edit Menu" : "Create Menu" }}</h2>
-          <button @click="closeModal" class="text-gray-500">✕</button>
+          <button @click="closeModal" class="text-gray-400 hover:text-white">✕</button>
         </div>
 
-        <p v-if="error" class="text-sm text-rose-600 mb-3">{{ error }}</p>
+        <p v-if="error" class="text-sm text-rose-300 mb-3">{{ error }}</p>
 
         <div class="space-y-3">
-          <input v-model.trim="form.name" class="w-full border rounded-xl px-3 py-2" placeholder="Name" />
+          <input v-model.trim="form.name" class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2" placeholder="Name" />
           <input
             v-model.trim="form.category"
-            class="w-full border rounded-xl px-3 py-2"
+            class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2"
             placeholder="Category (e.g. Pizza)"
           />
           <input
             v-model.number="form.price"
             type="number"
             step="0.01"
-            class="w-full border rounded-xl px-3 py-2"
+            class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2"
             placeholder="Price"
           />
           <input
             v-model.trim="form.image"
-            class="w-full border rounded-xl px-3 py-2"
+            class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2"
             placeholder="Image URL (optional)"
           />
           <textarea
             v-model.trim="form.description"
-            class="w-full border rounded-xl px-3 py-2"
+            class="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2"
             placeholder="Description (optional)"
           ></textarea>
 
-          <label class="flex items-center gap-2 text-sm">
+          <label class="flex items-center gap-2 text-sm text-gray-300">
             <input type="checkbox" v-model="form.is_available" />
             Available
           </label>
@@ -121,7 +125,7 @@
           <button
             @click="submit"
             :disabled="saving"
-            class="w-full py-2 rounded-xl bg-black text-white disabled:opacity-60"
+            class="w-full py-2 rounded-xl bg-gold text-black font-semibold disabled:opacity-60"
           >
             {{ saving ? "Saving..." : "Save" }}
           </button>
@@ -183,6 +187,7 @@ function closeModal() {
 
 async function load() {
   loading.value = true
+  error.value = ""
   try {
     const params = {}
     if (q.value) params.q = q.value
@@ -234,3 +239,9 @@ async function remove(id) {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.bg-gold {
+  background-color: #d4af37;
+}
+</style>

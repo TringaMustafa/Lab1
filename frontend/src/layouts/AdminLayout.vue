@@ -1,45 +1,49 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div class="flex">
-      <!-- Sidebar -->
-      <aside class="w-64 min-h-screen bg-white border-r">
-        <div class="p-5 font-bold text-lg">Restaurant Admin</div>
+  <div class="min-h-screen bg-black text-white flex">
+    <!-- Sidebar -->
+    <aside class="w-72 bg-zinc-950 border-r border-white/10 p-6">
+      <h1 class="text-3xl font-bold text-gold mb-10">Restaurant Admin</h1>
 
-        <nav class="px-3 space-y-1">
-          <RouterLink to="/dashboard" class="block px-4 py-2 rounded-lg hover:bg-gray-100">
-            Dashboard
-          </RouterLink>
-          <RouterLink to="/menus" class="block px-4 py-2 rounded-lg hover:bg-gray-100">
-            Menus
-          </RouterLink>
-          <RouterLink to="/orders" class="block px-4 py-2 rounded-lg hover:bg-gray-100">
-            Orders
-          </RouterLink>
-          <RouterLink to="/tables" class="block px-4 py-2 rounded-lg hover:bg-gray-100">
-            Tables
-          </RouterLink>
-          <RouterLink to="/reservations" class="block px-4 py-2 rounded-lg hover:bg-gray-100">
-            Reservations
-          </RouterLink>
-        </nav>
-      </aside>
+      <nav class="space-y-3">
+        <RouterLink to="/dashboard" class="block px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition">
+          Dashboard
+        </RouterLink>
+
+        <RouterLink to="/menus" class="block px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition">
+          Menus
+        </RouterLink>
+
+        <RouterLink to="/orders" class="block px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition">
+          Orders
+        </RouterLink>
+
+        <RouterLink to="/admin-tables" class="block px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition">
+          Tables
+        </RouterLink>
+
+        <RouterLink to="/reservations" class="block px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition">
+          Reservations
+        </RouterLink>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header -->
+      <header class="h-24 bg-zinc-950 border-b border-white/10 px-8 flex items-center justify-between">
+        <h2 class="text-3xl font-bold text-white">Dashboard</h2>
+
+        <button
+          @click="logout"
+          class="px-5 py-3 rounded-xl border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition"
+        >
+          Logout
+        </button>
+      </header>
 
       <!-- Content -->
-      <main class="flex-1">
-        <header class="h-16 bg-white border-b flex items-center justify-between px-6">
-          <div class="font-semibold">Dashboard</div>
-
-          <button
-            @click="handleLogout"
-            class="px-4 py-2 rounded-lg border border-red-400 text-red-500 hover:bg-red-400 hover:text-white transition"
-          >
-            Logout
-          </button>
-        </header>
-
-        <div class="p-6">
-          <slot />
-        </div>
+      <main class="flex-1 bg-gradient-to-b from-black via-slate-900 to-zinc-900 p-8">
+        <slot />
       </main>
     </div>
   </div>
@@ -52,9 +56,18 @@ import { useAuthStore } from "../store/auth"
 const router = useRouter()
 const auth = useAuthStore()
 
-async function handleLogout() {
+async function logout() {
   await auth.logout()
   router.push("/login")
 }
 </script>
 
+<style scoped>
+.text-gold {
+  color: #d4af37;
+}
+.router-link-active {
+  background: rgba(255,255,255,0.08);
+  color: white;
+}
+</style>
