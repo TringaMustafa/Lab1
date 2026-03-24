@@ -13,7 +13,9 @@ class Menu extends Model
         'name',
         'description',
         'image',
-        'price'
+        'price',
+        'category',
+        'is_available'
     ];
 
 }

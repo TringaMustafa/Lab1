@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\OrderItem;
+use App\Models\User;
 
 class Order extends Model
 {
     use HasFactory;
 
-    // ✅ KËTU i shton fushat
     protected $fillable = [
         'user_id',
         'total',
@@ -19,7 +20,6 @@ class Order extends Model
         'payment_status',
     ];
 
-    // (opsionale por shumë e rekomanduar)
     public function items()
     {
         return $this->hasMany(OrderItem::class);

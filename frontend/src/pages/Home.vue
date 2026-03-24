@@ -14,6 +14,14 @@
         <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
         <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
         <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
+        <RouterLink
+  v-if="auth.isAdmin()"
+  to="/dashboard"
+  class="..."
+>
+  Dashboard
+</RouterLink>
+
 
 <RouterLink
   v-if="isLogged"

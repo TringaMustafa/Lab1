@@ -10,8 +10,9 @@ import Cart from "../pages/Cart.vue"
 import Checkout from "../pages/Checkout.vue"
 import Success from "../pages/Success.vue"
 import Invoice from "../pages/Invoice.vue"
-
-
+import AdminMenu from "../pages/AdminMenu.vue"
+import AdminReservations from "../pages/AdminReservations.vue"
+import AdminTables from "../pages/AdminTables.vue"
 import Dashboard from "../pages/Dashboard.vue"
 import Orders from "../pages/Orders.vue"
 
@@ -38,6 +39,16 @@ const routes = [
     component: Orders,
     meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
   },
+  {
+  path: "/menus",
+  component: AdminMenu,
+  meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
+},
+{
+  path: "/reservations",
+  component: AdminReservations,
+  meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
+},
 
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ]
