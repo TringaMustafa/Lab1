@@ -16,6 +16,8 @@ class Reservation extends Model
         'phone',
         'date',
         'time',
+        'end_time',
+        'actual_end_time',
         'guests',
         'status',
     ];
@@ -28,5 +30,9 @@ class Reservation extends Model
     public function table()
     {
         return $this->belongsTo(Table::class);
+    }
+    public function getEffectiveEndTimeAttribute()
+    {
+        return $this->actual_end_time ?? $this->end_time;
     }
 }

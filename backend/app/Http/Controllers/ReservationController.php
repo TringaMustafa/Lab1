@@ -5,46 +5,52 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Models\Table;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
-    /**
-     * ✅ USER - Create reservation
-     * POST /api/reservations
-     */
     public function store(Request $request)
     {
         $user = auth('api')->user();
 
         $data = $request->validate([
             'table_id' => 'required|integer|exists:tables,id',
-            'name' => 'required|string|min:2',
-            'phone' => 'required|string|min:6',
+            'name' => 'required|string|min:2|max:255',
+            'phone' => 'required|string|min:6|max:20',
             'date' => 'required|date',
-            'time' => 'required',
-            'guests' => 'required|integer|min:1',
+            'time' => 'required|date_format:H:i',
+            'guests' => 'required|integer|min:1|max:20',
         ]);
 
         $table = Table::findOrFail($data['table_id']);
 
-        // ✅ mos lejo guests > seats
-        if ((int)$data['guests'] > (int)$table->seats) {
+        if ((int) $data['guests'] > (int) $table->seats) {
             return response()->json([
                 'message' => 'Kjo tavolinë nuk ka aq vende.'
             ], 422);
         }
 
-        // ✅ conflict check (same table + same date + same time)
+        $requestedStart = Carbon::createFromFormat('H:i', $data['time']);
+        $requestedEnd = $requestedStart->copy()->addHours(2);
+
         $exists = Reservation::query()
             ->where('table_id', $table->id)
             ->where('date', $data['date'])
-            ->whereTime('time', $data['time'])
             ->whereIn('status', ['pending', 'confirmed'])
-            ->exists();
+            ->get()
+            ->contains(function ($reservation) use ($requestedStart, $requestedEnd) {
+                $reservationStart = Carbon::createFromFormat('H:i:s', $reservation->time);
+                $reservationEnd = Carbon::createFromFormat(
+                    'H:i:s',
+                    $reservation->actual_end_time ?: $reservation->end_time
+                );
+
+                return $requestedStart < $reservationEnd && $requestedEnd > $reservationStart;
+            });
 
         if ($exists) {
             return response()->json([
-                'message' => 'Kjo tavolinë është e rezervuar për këtë orë.'
+                'message' => 'Kjo tavolinë është e rezervuar në këtë interval kohe.'
             ], 409);
         }
 
@@ -54,25 +60,23 @@ class ReservationController extends Controller
             'name' => $data['name'],
             'phone' => $data['phone'],
             'date' => $data['date'],
-            'time' => $data['time'],
-            'guests' => (int)$data['guests'],
+            'time' => $requestedStart->format('H:i:s'),
+            'end_time' => $requestedEnd->format('H:i:s'),
+            'actual_end_time' => null,
+            'guests' => (int) $data['guests'],
             'status' => 'pending',
         ]);
 
         return response()->json([
             'message' => 'Reservation created',
-            'data' => $reservation
+            'data' => $reservation->load(['table', 'user'])
         ], 201);
     }
 
-    /**
-     * ✅ ADMIN - List reservations
-     * GET /api/reservations
-     */
     public function index(Request $request)
     {
-        $status = $request->query('status'); // pending/confirmed/cancelled
-        $date = $request->query('date');     // YYYY-MM-DD
+        $status = $request->query('status');
+        $date = $request->query('date');
 
         $q = Reservation::with(['table', 'user'])
             ->when($status && $status !== 'all', fn ($qq) => $qq->where('status', $status))
@@ -83,43 +87,65 @@ class ReservationController extends Controller
         return response()->json($q);
     }
 
-    /**
-     * ✅ ADMIN - Show reservation
-     * GET /api/reservations/{reservation}
-     */
     public function show(Reservation $reservation)
     {
         return response()->json($reservation->load(['table', 'user']));
     }
 
-    /**
-     * ✅ ADMIN - Update reservation (confirm/cancel/change)
-     * PUT/PATCH /api/reservations/{reservation}
-     */
     public function update(Request $request, Reservation $reservation)
     {
         $data = $request->validate([
             'table_id' => 'sometimes|required|integer|exists:tables,id',
-            'name' => 'sometimes|required|string|min:2',
-            'phone' => 'sometimes|required|string|min:6',
+            'name' => 'sometimes|required|string|min:2|max:255',
+            'phone' => 'sometimes|required|string|min:6|max:20',
             'date' => 'sometimes|required|date',
-            'time' => 'sometimes|required',
-            'guests' => 'sometimes|required|integer|min:1',
+            'time' => 'sometimes|required|date_format:H:i',
+            'guests' => 'sometimes|required|integer|min:1|max:20',
             'status' => 'sometimes|required|in:pending,confirmed,cancelled',
+            'actual_end_time' => 'nullable|date_format:H:i',
         ]);
 
-        // ✅ nëse po ndryshon table/date/time, kontrollo conflict
         $newTableId = $data['table_id'] ?? $reservation->table_id;
         $newDate = $data['date'] ?? $reservation->date;
-        $newTime = $data['time'] ?? $reservation->time;
+        $newTime = $data['time'] ?? substr($reservation->time, 0, 5);
+        $newGuests = (int) ($data['guests'] ?? $reservation->guests);
+
+        $table = Table::findOrFail($newTableId);
+
+        if ($newGuests > (int) $table->seats) {
+            return response()->json([
+                'message' => 'Guests exceed table seats.'
+            ], 422);
+        }
+
+        $newStart = Carbon::createFromFormat('H:i', $newTime);
+        $newEnd = $newStart->copy()->addHours(2);
+
+        if (array_key_exists('actual_end_time', $data) && !empty($data['actual_end_time'])) {
+            $actualEnd = Carbon::createFromFormat('H:i', $data['actual_end_time']);
+
+            if ($actualEnd->lessThanOrEqualTo($newStart)) {
+                return response()->json([
+                    'message' => 'Actual end time must be later than start time.'
+                ], 422);
+            }
+        }
 
         $exists = Reservation::query()
             ->where('id', '!=', $reservation->id)
             ->where('table_id', $newTableId)
             ->where('date', $newDate)
-            ->whereTime('time', $newTime)
             ->whereIn('status', ['pending', 'confirmed'])
-            ->exists();
+            ->get()
+            ->contains(function ($otherReservation) use ($newStart, $newEnd) {
+                $otherStart = Carbon::createFromFormat('H:i:s', $otherReservation->time);
+                $otherEnd = Carbon::createFromFormat(
+                    'H:i:s',
+                    $otherReservation->actual_end_time ?: $otherReservation->end_time
+                );
+
+                return $newStart < $otherEnd && $newEnd > $otherStart;
+            });
 
         if ($exists) {
             return response()->json([
@@ -127,14 +153,25 @@ class ReservationController extends Controller
             ], 409);
         }
 
-        // ✅ guests <= seats
-        $table = Table::findOrFail($newTableId);
-        $newGuests = (int)($data['guests'] ?? $reservation->guests);
-        if ($newGuests > (int)$table->seats) {
-            return response()->json(['message' => 'Guests exceed table seats.'], 422);
+        $updateData = [];
+
+        if (array_key_exists('table_id', $data)) $updateData['table_id'] = $data['table_id'];
+        if (array_key_exists('name', $data)) $updateData['name'] = $data['name'];
+        if (array_key_exists('phone', $data)) $updateData['phone'] = $data['phone'];
+        if (array_key_exists('date', $data)) $updateData['date'] = $data['date'];
+        if (array_key_exists('time', $data)) {
+            $updateData['time'] = $newStart->format('H:i:s');
+            $updateData['end_time'] = $newEnd->format('H:i:s');
+        }
+        if (array_key_exists('guests', $data)) $updateData['guests'] = $data['guests'];
+        if (array_key_exists('status', $data)) $updateData['status'] = $data['status'];
+        if (array_key_exists('actual_end_time', $data)) {
+            $updateData['actual_end_time'] = $data['actual_end_time']
+                ? Carbon::createFromFormat('H:i', $data['actual_end_time'])->format('H:i:s')
+                : null;
         }
 
-        $reservation->update($data);
+        $reservation->update($updateData);
 
         return response()->json([
             'message' => 'Reservation updated',
@@ -142,10 +179,6 @@ class ReservationController extends Controller
         ]);
     }
 
-    /**
-     * ✅ ADMIN - Delete reservation
-     * DELETE /api/reservations/{reservation}
-     */
     public function destroy(Reservation $reservation)
     {
         $reservation->delete();
