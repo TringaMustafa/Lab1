@@ -38,7 +38,10 @@ class TableController extends Controller
             ->orderBy('id')
             ->get();
 
-        return response()->json($tables);
+      return response()->json([
+    'message' => 'Available tables fetched successfully',
+    'data' => $tables
+]);
     }
 
     // ADMIN - create table
