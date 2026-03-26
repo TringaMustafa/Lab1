@@ -8,11 +8,13 @@ use Illuminate\Http\Request;
 class TableController extends Controller
 {
     // USER - list tables
-    public function index()
-    {
-        return response()->json(Table::orderBy('id')->get());
-    }
-
+  public function index()
+{
+    return response()->json([
+        'message' => 'Tables fetched successfully',
+        'data' => Table::orderBy('id')->get(),
+    ]);
+}
     // USER - available tables
     public function available(Request $request)
     {
