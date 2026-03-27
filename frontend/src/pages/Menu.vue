@@ -19,7 +19,18 @@
   class="px-3 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
   title="Dashboard"
 >
+
+
 </RouterLink>
+
+     <RouterLink
+      v-if="isLogged"
+      to="/history"
+      class="hover:text-gold transition"
+     >
+    History
+   </RouterLink>
+
         <RouterLink
           v-if="isLogged"
           to="/cart"
@@ -34,7 +45,7 @@
             {{ cart.count }}
           </span>
         </RouterLink>
-
+      
         <RouterLink
           v-if="!isLogged"
           to="/login"

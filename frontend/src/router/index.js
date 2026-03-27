@@ -27,6 +27,7 @@ const routes = [
   { path: "/checkout", component: Checkout, meta: { requiresAuth: true } },
   { path: "/success", component: Success, meta: { requiresAuth: true } },
   { path: "/invoice", component: Invoice, meta: { requiresAuth: true } },
+  { path: "/history", name: "history", component: () => import("../pages/History.vue"), meta: { requiresAuth: true }},
 
   // ADMIN (protected)
   {

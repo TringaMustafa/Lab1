@@ -51,6 +51,21 @@ class OrderController extends Controller
         ], 201);
     }
 
+    public function myOrders()
+{
+    $user = auth('api')->user();
+
+    $orders = \App\Models\Order::with(['items.menu'])
+        ->where('user_id', $user->id)
+        ->latest()
+        ->get();
+
+    return response()->json([
+        'message' => 'Your orders fetched successfully',
+        'data' => $orders
+    ]);
+}
+
     // ADMIN - list orders
     public function index(Request $request)
     {

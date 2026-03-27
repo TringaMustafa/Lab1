@@ -14,13 +14,22 @@
         <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
         <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
         <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
-        <RouterLink
-  v-if="auth.isAdmin()"
+        
+  <RouterLink
+  v-if="isLogged"
+  to="/history"
+  class="hover:text-gold transition"
+>
+  History
+</RouterLink>
+
+   <RouterLink
+   v-if="auth.isAdmin()"
   to="/dashboard"
   class="..."
->
-  Dashboard
-</RouterLink>
+  >
+   Dashboard
+   </RouterLink>
 
 
 <RouterLink
@@ -37,6 +46,7 @@
     {{ cart.count }}
   </span>
 </RouterLink>
+
 
 
  <!-- NËSE NUK ËSHTË LOGGED -->

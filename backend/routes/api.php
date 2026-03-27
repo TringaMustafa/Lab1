@@ -39,8 +39,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/tables', [TableController::class, 'index']);
     Route::get('/tables/available', [TableController::class, 'available']);
     Route::post('/reservations', [ReservationController::class, 'store']);
-
-    /*
+    Route::get('/my-orders', [OrderController::class, 'myOrders']);
+    Route::get('/my-reservations', [ReservationController::class, 'myReservations']);
+    Route::put('/my-reservations/{reservation}', [ReservationController::class, 'updateMine']);    /*
     |--------------------------------------------------------------------------
     | ADMIN ROUTES (JWT + ADMIN ONLY)
     |--------------------------------------------------------------------------

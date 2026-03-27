@@ -33,8 +33,15 @@
           >
             {{ cart.count }}
           </span>
-        </RouterLink>
+        </RouterLink> 
 
+  <RouterLink
+  v-if="isLogged"
+  to="/history"
+  class="hover:text-gold transition"
+>
+  History
+</RouterLink>
 
         <!-- NËSE NUK ËSHTË LOGGED -->
         <RouterLink

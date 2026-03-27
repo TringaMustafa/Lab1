@@ -73,6 +73,109 @@ class ReservationController extends Controller
         ], 201);
     }
 
+    public function myReservations()
+{
+    $user = auth('api')->user();
+
+    $reservations = Reservation::with(['table'])
+        ->where('user_id', $user->id)
+        ->latest()
+        ->get();
+
+    return response()->json([
+        'message' => 'Your reservations fetched successfully',
+        'data' => $reservations
+    ]);
+}
+
+public function updateMine(Request $request, Reservation $reservation)
+{
+    $user = auth('api')->user();
+
+    if ($reservation->user_id !== $user->id) {
+        return response()->json([
+            'message' => 'Forbidden'
+        ], 403);
+    }
+
+    if ($reservation->status === 'cancelled') {
+        return response()->json([
+            'message' => 'Cancelled reservation cannot be edited.'
+        ], 422);
+    }
+
+    $reservationDateTime = \Carbon\Carbon::parse($reservation->date . ' ' . $reservation->time);
+    if ($reservationDateTime->isPast()) {
+        return response()->json([
+            'message' => 'Past reservations cannot be edited.'
+        ], 422);
+    }
+
+    $data = $request->validate([
+        'table_id' => 'required|integer|exists:tables,id',
+        'date' => 'required|date',
+        'time' => 'required|date_format:H:i',
+        'guests' => 'required|integer|min:1|max:20',
+        'name' => 'required|string|min:2|max:255',
+        'phone' => 'required|string|min:6|max:20',
+    ]);
+
+    $newDateTime = \Carbon\Carbon::parse($data['date'] . ' ' . $data['time']);
+    if ($newDateTime->isPast()) {
+        return response()->json([
+            'message' => 'You can edit only upcoming reservations.'
+        ], 422);
+    }
+
+    $table = \App\Models\Table::findOrFail($data['table_id']);
+
+    if ((int) $data['guests'] > (int) $table->seats) {
+        return response()->json([
+            'message' => 'Selected table does not have enough seats.'
+        ], 422);
+    }
+
+    $newStart = \Carbon\Carbon::createFromFormat('H:i', $data['time']);
+    $newEnd = $newStart->copy()->addHours(2);
+
+    $exists = Reservation::query()
+        ->where('id', '!=', $reservation->id)
+        ->where('table_id', $data['table_id'])
+        ->where('date', $data['date'])
+        ->whereIn('status', ['pending', 'confirmed'])
+        ->get()
+        ->contains(function ($otherReservation) use ($newStart, $newEnd) {
+            $otherStart = \Carbon\Carbon::createFromFormat('H:i:s', $otherReservation->time);
+            $otherEnd = \Carbon\Carbon::createFromFormat(
+                'H:i:s',
+                $otherReservation->actual_end_time ?: $otherReservation->end_time
+            );
+
+            return $newStart < $otherEnd && $newEnd > $otherStart;
+        });
+
+    if ($exists) {
+        return response()->json([
+            'message' => 'This table is already reserved in that time range.'
+        ], 409);
+    }
+
+    $reservation->update([
+        'table_id' => $data['table_id'],
+        'name' => $data['name'],
+        'phone' => $data['phone'],
+        'date' => $data['date'],
+        'time' => $newStart->format('H:i:s'),
+        'end_time' => $newEnd->format('H:i:s'),
+        'guests' => $data['guests'],
+    ]);
+
+    return response()->json([
+        'message' => 'Reservation updated successfully',
+        'data' => $reservation->fresh()->load('table')
+    ]);
+}
+
     public function index(Request $request)
     {
         $status = $request->query('status');
