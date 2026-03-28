@@ -47,6 +47,56 @@ class ReservationController extends Controller
         }
     }
 
+    private function isValidPhone($phone)
+{
+    $phone = preg_replace('/\D/', '', $phone);
+
+    if (strlen($phone) < 8 || strlen($phone) > 15) {
+        return false;
+    }
+
+    if (preg_match('/^(\d)\1+$/', $phone)) {
+        return false;
+    }
+
+    $fakeNumbers = [
+        '12345678',
+        '123456789',
+        '1234567890',
+        '12345678901',
+        '00000000',
+        '000000000',
+        '0000000000',
+        '11111111',
+        '111111111',
+        '1111111111',
+        '22222222',
+        '222222222',
+        '2222222222',
+        '33333333',
+        '333333333',
+        '44444444',
+        '444444444',
+        '55555555',
+        '555555555',
+        '66666666',
+        '666666666',
+        '77777777',
+        '777777777',
+        '88888888',
+        '888888888',
+        '99999999',
+        '999999999',
+        '9999999999',
+    ];
+
+    if (in_array($phone, $fakeNumbers)) {
+        return false;
+    }
+
+    return true;
+}
+
     public function store(Request $request)
     {
         $user = auth('api')->user();
@@ -54,11 +104,16 @@ class ReservationController extends Controller
         $data = $request->validate([
             'table_id' => 'required|integer|exists:tables,id',
             'name' => 'required|string|min:2|max:255',
-            'phone' => 'required|string|min:6|max:20',
-            'date' => 'required|date',
+            'phone' => ['required', 'string', 'min:8', 'max:20', 'regex:/^\+?[0-9\s\-]+$/'],            'date' => 'required|date',
             'time' => 'required',
             'guests' => 'required|integer|min:1|max:20',
         ]);
+
+        if (!$this->isValidPhone($data['phone'])) {
+    return response()->json([
+        'message' => 'Please enter a valid phone number.'
+    ], 422);
+}
 
         $normalizedTime = $this->normalizeTime($data['time']);
 
@@ -163,9 +218,13 @@ class ReservationController extends Controller
             'time' => 'required',
             'guests' => 'required|integer|min:1|max:20',
             'name' => 'required|string|min:2|max:255',
-            'phone' => 'required|string|min:6|max:20',
-        ]);
+            'phone' => ['required', 'string', 'min:8', 'max:20', 'regex:/^\+?[0-9\s\-]+$/'],        ]);
 
+      if (!$this->isValidPhone($data['phone'])) {
+        return response()->json([
+        'message' => 'Please enter a valid phone number.'
+        ], 422);
+}
         $normalizedTime = $this->normalizeTime($data['time']);
 
         if (!$normalizedTime) {
@@ -254,13 +313,18 @@ class ReservationController extends Controller
         $data = $request->validate([
             'table_id' => 'sometimes|required|integer|exists:tables,id',
             'name' => 'sometimes|required|string|min:2|max:255',
-            'phone' => 'sometimes|required|string|min:6|max:20',
-            'date' => 'sometimes|required|date',
+            'phone' => ['sometimes', 'required', 'string', 'min:8', 'max:20', 'regex:/^\+?[0-9\s\-]+$/'],            'date' => 'sometimes|required|date',
             'time' => 'sometimes|required',
             'guests' => 'sometimes|required|integer|min:1|max:20',
             'status' => 'sometimes|required|in:pending,confirmed,cancelled',
             'actual_end_time' => 'nullable',
         ]);
+
+        if (array_key_exists('phone', $data) && !$this->isValidPhone($data['phone'])) {
+         return response()->json([
+        'message' => 'Please enter a valid phone number.'
+        ], 422);
+}
 
         if (array_key_exists('time', $data)) {
             $normalizedTime = $this->normalizeTime($data['time']);

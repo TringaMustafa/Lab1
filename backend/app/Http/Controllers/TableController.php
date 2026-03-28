@@ -4,19 +4,54 @@ namespace App\Http\Controllers;
 
 use App\Models\Table;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class TableController extends Controller
 {
+    private function normalizeTime($time)
+    {
+        if (!$time) {
+            return null;
+        }
+
+        try {
+            $time = trim((string) $time);
+            $time = preg_replace('/\s+/', ' ', $time);
+
+            $formats = [
+                'h:i A',
+                'g:i A',
+                'h:iA',
+                'g:iA',
+                'H:i',
+                'G:i',
+                'H:i:s',
+            ];
+
+            foreach ($formats as $format) {
+                try {
+                    return Carbon::createFromFormat($format, strtoupper($time))->format('H:i');
+                } catch (\Exception $e) {
+                }
+            }
+
+            return Carbon::parse($time)->format('H:i');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     // USER - list tables
-  public function index()
-{
-    return response()->json([
-        'message' => 'Tables fetched successfully',
-        'data' => Table::orderBy('id')->get(),
-    ]);
-}
+    public function index()
+    {
+        return response()->json([
+            'message' => 'Tables fetched successfully',
+            'data' => Table::orderBy('id')->get(),
+        ]);
+    }
+
     // USER - available tables
-    public function available(Request $request)
+ public function available(Request $request)
     {
         $data = $request->validate([
             'date' => 'required|date',
@@ -25,24 +60,46 @@ class TableController extends Controller
         ]);
 
         $date = $data['date'];
-        $time = $data['time'];
         $guests = (int) $data['guests'];
+
+        $normalizedTime = $this->normalizeTime($data['time']);
+
+        if (!$normalizedTime) {
+            return response()->json([
+                'message' => 'Invalid time format.'
+            ], 422);
+        }
+
+        $requestedTime = Carbon::createFromFormat('H:i', $normalizedTime);
 
         $tables = Table::query()
             ->where('seats', '>=', $guests)
-            ->whereDoesntHave('reservations', function ($q) use ($date, $time) {
-                $q->where('date', $date)
-                  ->whereTime('time', $time)
-                  ->whereIn('status', ['pending', 'confirmed']);
-            })
-            ->orderBy('id')
-            ->get();
+            ->get()
+            ->filter(function ($table) use ($date, $requestedTime) {
+                foreach ($table->reservations()
+                    ->where('date', $date)
+                    ->whereIn('status', ['pending', 'confirmed'])
+                    ->get() as $reservation) {
 
-      return response()->json([
-    'message' => 'Available tables fetched successfully',
-    'data' => $tables
-]);
-    }
+                    $reservationTime = Carbon::createFromFormat('H:i:s', $reservation->time);
+
+                    $blockedStart = $reservationTime->copy()->subMinutes(90);
+                    $blockedEnd = $reservationTime->copy()->addMinutes(90);
+
+                    if ($requestedTime->greaterThan($blockedStart) && $requestedTime->lessThan($blockedEnd)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
+            ->values();
+
+        return response()->json([
+            'message' => 'Available tables fetched successfully',
+            'data' => $tables
+        ]);
+    } 
 
     // ADMIN - create table
     public function store(Request $request)
