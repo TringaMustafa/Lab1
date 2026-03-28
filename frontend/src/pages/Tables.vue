@@ -1,16 +1,14 @@
 ﻿<template>
   <!-- NAVBAR TRANSPARENT SI HOME -->
   <header class="absolute top-0 left-0 w-full z-50 bg-transparent text-white">
-    <div class="max-w-6xl mx-auto flex justify-between items-center py-6 px-4 md:px-0">
-      <div class="flex items-center gap-3">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:justify-between md:items-center gap-4 py-4 md:py-6 px-4 md:px-0">      <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-2xl bg-gold flex items-center justify-center text-black text-xl">
           🍽️
         </div>
         <span class="text-2xl font-bold tracking-wide text-gold">TableFlow</span>
       </div>
 
-      <nav class="flex items-center gap-6 text-sm md:text-base">
-        <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
+     <nav class="w-full md:w-auto flex flex-wrap items-center justify-start md:justify-end gap-3 md:gap-6 text-sm md:text-base">        <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
         <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
         <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
        <RouterLink
@@ -132,8 +130,7 @@
       <!-- TABLES GRID -->
       <div v-if="loading" class="text-sm text-gray-300">Loading...</div>
 
-      <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-        <div
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">        <div
           v-for="t in tables"
           :key="t.id"
           class="rounded-2xl bg-white/5 border border-white/10 p-5 flex flex-col justify-between hover:border-gold/60 transition"
@@ -164,8 +161,7 @@
 
       <!-- MODAL RESERVATION -->
       <div v-if="showModal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4">
-        <div class="w-full max-w-lg rounded-2xl bg-zinc-950 border border-white/10 p-5">
-          <div class="flex items-center justify-between mb-4">
+      <div class="w-full max-w-lg rounded-2xl bg-zinc-950 border border-white/10 p-4 md:p-5 max-h-[90vh] overflow-y-auto">          <div class="flex items-center justify-between mb-4">
             <h2 class="font-semibold text-lg">
               Rezervo – Tavolina {{ selected?.name }}
             </h2>

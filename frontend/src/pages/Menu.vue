@@ -1,6 +1,6 @@
 ﻿<template>
   <header class="absolute top-0 left-0 w-full z-50 bg-transparent text-white">
-    <div class="max-w-6xl mx-auto flex justify-between items-center py-6 px-4 md:px-0">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:justify-between md:items-center gap-4 py-4 md:py-6 px-4 md:px-0">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-2xl bg-gold flex items-center justify-center text-black text-xl">
           🍽️
@@ -8,33 +8,32 @@
         <span class="text-2xl font-bold tracking-wide text-gold">TableFlow</span>
       </div>
 
-      <nav class="flex items-center gap-6 text-sm md:text-base">
+      <nav class="w-full md:w-auto flex flex-wrap items-center justify-start md:justify-end gap-3 md:gap-6 text-sm md:text-base">
         <RouterLink to="/" class="hover:text-gold transition">Home</RouterLink>
         <RouterLink to="/menu" class="hover:text-gold transition">Menu</RouterLink>
         <RouterLink to="/tables" class="hover:text-gold transition">Tables</RouterLink>
 
         <RouterLink
-  v-if="auth.user?.role === 'admin'"
-  to="/dashboard"
-  class="px-3 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
-  title="Dashboard"
->
+          v-if="auth.user?.role === 'admin'"
+          to="/dashboard"
+          class="px-3 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
+          title="Dashboard"
+        >
+          Dashboard
+        </RouterLink>
 
-
-</RouterLink>
-
-     <RouterLink
-      v-if="isLogged"
-      to="/history"
-      class="hover:text-gold transition"
-     >
-    History
-   </RouterLink>
+        <RouterLink
+          v-if="isLogged"
+          to="/history"
+          class="hover:text-gold transition"
+        >
+          History
+        </RouterLink>
 
         <RouterLink
           v-if="isLogged"
           to="/cart"
-          class="relative ml-2 px-3 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition"
+          class="relative px-3 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition"
           title="Cart"
         >
           🛒
@@ -45,11 +44,11 @@
             {{ cart.count }}
           </span>
         </RouterLink>
-      
+
         <RouterLink
           v-if="!isLogged"
           to="/login"
-          class="ml-4 px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
+          class="px-4 py-2 rounded-lg border border-gold text-gold hover:bg-gold hover:text-black transition"
         >
           Login
         </RouterLink>
@@ -57,7 +56,7 @@
         <button
           v-else
           @click="handleLogout"
-          class="ml-4 px-4 py-2 rounded-lg border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition"
+          class="px-4 py-2 rounded-lg border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition"
         >
           Logout
         </button>
@@ -65,8 +64,8 @@
     </div>
   </header>
 
-  <div class="min-h-screen bg-gradient-to-b from-black via-slate-900 to-zinc-900 text-white pt-28">
-    <div class="max-w-6xl mx-auto px-4 py-10">
+  <div class="min-h-screen bg-gradient-to-b from-black via-slate-900 to-zinc-900 text-white pt-36 md:pt-28">
+    <div class="max-w-6xl mx-auto px-4 py-8 md:py-10">
       <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
         <div>
           <h1 class="text-3xl md:text-4xl font-bold">
@@ -79,7 +78,7 @@
 
         <p
           v-if="!isLogged"
-          class="text-sm md:text-base font-semibold px-5 py-3 rounded-xl bg-red-500/15 text-red-400 border border-red-500/50 shadow-sm"
+          class="text-sm md:text-base font-semibold px-4 md:px-5 py-3 rounded-xl bg-red-500/15 text-red-400 border border-red-500/50 shadow-sm max-w-full md:max-w-md"
         >
           Për të porositur, ju lutem
           <RouterLink to="/login?redirect=/menu" class="text-gold underline">kyçu</RouterLink>.
@@ -105,11 +104,11 @@
       <div v-if="loading" class="text-sm text-gray-300">Loading...</div>
       <div v-else-if="error" class="text-sm text-rose-300">{{ error }}</div>
 
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         <div
           v-for="item in filteredMenu"
           :key="item.id"
-          class="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-gold/60 transition"
+          class="bg-white/5 border border-white/10 rounded-2xl p-4 md:p-5 flex flex-col justify-between hover:border-gold/60 transition"
         >
           <div>
             <h3 class="text-lg font-semibold">{{ item.name }}</h3>
@@ -124,8 +123,8 @@
             </p>
           </div>
 
-          <div class="flex items-center justify-between mt-4">
-            <p class="text-xl font-bold text-gold">
+          <div class="flex items-center justify-between gap-3 mt-4">
+            <p class="text-lg md:text-xl font-bold text-gold">
               €{{ Number(item.price ?? 0).toFixed(2) }}
             </p>
 
@@ -181,9 +180,9 @@ async function loadMenu() {
   loading.value = true
   error.value = ""
   try {
-   const res = await api.get("/public-menus", {
-  params: { available: 1 }
-})
+    const res = await api.get("/public-menus", {
+      params: { available: 1 }
+    })
     menu.value = res.data.data ?? res.data
   } catch (e) {
     error.value = e?.response?.data?.message || "Gabim gjatë ngarkimit të menusë."
