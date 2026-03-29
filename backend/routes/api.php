@@ -10,18 +10,14 @@ use App\Http\Controllers\TableController;
 use App\Http\Controllers\ReservationController;
 
 /*
-|--------------------------------------------------------------------------
-| PUBLIC ROUTES
-|--------------------------------------------------------------------------
+ PUBLIC ROUTES
 */
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/public-menus', [MenuController::class, 'index']);
 
 /*
-|--------------------------------------------------------------------------
-| AUTHENTICATED ROUTES (JWT)
-|--------------------------------------------------------------------------
+ AUTHENTICATED ROUTES (JWT)
 */
 Route::middleware('auth:api')->group(function () {
 
@@ -30,9 +26,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     /*
-    |--------------------------------------------------------------------------
-    | USER ROUTES
-    |--------------------------------------------------------------------------
+    USER ROUTES
     */
 
     Route::post('/orders', [OrderController::class, 'store']);
@@ -41,10 +35,10 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/reservations', [ReservationController::class, 'store']);
     Route::get('/my-orders', [OrderController::class, 'myOrders']);
     Route::get('/my-reservations', [ReservationController::class, 'myReservations']);
-    Route::put('/my-reservations/{reservation}', [ReservationController::class, 'updateMine']);    /*
-    |--------------------------------------------------------------------------
-    | ADMIN ROUTES (JWT + ADMIN ONLY)
-    |--------------------------------------------------------------------------
+    Route::put('/my-reservations/{reservation}', [ReservationController::class, 'updateMine']);    
+    
+    /*
+    ADMIN ROUTES (JWT + ADMIN ONLY)
     */
     Route::middleware('is_admin')->group(function () {
 

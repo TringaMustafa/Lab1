@@ -18,10 +18,8 @@ class ReservationController extends Controller
         try {
             $time = trim((string) $time);
 
-            // normalizo hapesira te cuditshme
             $time = preg_replace('/\s+/', ' ', $time);
 
-            // provo formatet me te zakonshme
             $formats = [
                 'h:i A', // 08:00 PM
                 'g:i A', // 8:00 PM
@@ -36,11 +34,13 @@ class ReservationController extends Controller
                 try {
                     return Carbon::createFromFormat($format, strtoupper($time))->format('H:i');
                 } catch (\Exception $e) {
-                    // provo formatin tjeter
+                    return response()->json([
+        'message' => 'Something went wrong.',
+        'error' => $e->getMessage()
+    ], 500);
                 }
             }
 
-            // fallback
             return Carbon::parse($time)->format('H:i');
         } catch (\Exception $e) {
             return null;

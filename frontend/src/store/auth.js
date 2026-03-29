@@ -54,14 +54,14 @@ export const useAuthStore = defineStore("auth", () => {
     localStorage.removeItem("user")
   }
 
-  // ✅ KJO E ZGJIDH "Logout del menjehere"
+  // "Logout del menjehere"
  async function init() {
   if (!token.value) return
 
   try {
     await me()
   } catch (e) {
-    // token invalid → pastro
+    // token invalid -  pastro
     token.value = null
     user.value = null
     localStorage.removeItem("token")

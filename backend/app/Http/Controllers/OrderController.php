@@ -16,7 +16,6 @@ class OrderController extends Controller
             return false;
         }
 
-        // bllokon 111111111, 222222222, 000000000 etj.
         if (preg_match('/^(\d)\1+$/', $phone)) {
             return false;
         }

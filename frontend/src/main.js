@@ -12,7 +12,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-// ✅ verifiko token-in para se UI me vendos Login/Logout
+// verifiko token-in para se UI me vendos login/logout
 const auth = useAuthStore()
 auth.init().finally(() => {
   app.mount("#app")

@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // (Obligative) këto janë protected, përveç login/register
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['register', 'login']]);

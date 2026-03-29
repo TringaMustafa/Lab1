@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { ref, computed, watch } from "vue"
 
 export const useCartStore = defineStore("cart", () => {
-  // ✅ safe parse
+  // safe parse
   function loadItems() {
     try {
       const raw = localStorage.getItem("cart_items")
@@ -15,7 +15,7 @@ export const useCartStore = defineStore("cart", () => {
 
   const items = ref(loadItems())
 
-  // ✅ auto-save kur ndryshon cart
+  // auto-save kur ndryshon cart
   watch(
     items,
     (val) => {
