@@ -60,7 +60,7 @@ async function handleRegister() {
 
   try {
     await auth.register(name.value, email.value, password.value)
-    success.value = "U regjistrove me sukses! Tani kyçu."
+    success.value = "U regjistrove me sukses!"
     setTimeout(() => router.push("/login"), 800)
   } catch (err) {
     error.value = err.response?.data?.message || "Gabim gjatë regjistrimit."

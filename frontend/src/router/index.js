@@ -1,20 +1,22 @@
 ﻿import { createRouter, createWebHistory } from "vue-router"
 import { useAuthStore } from "../store/auth"
 
-import Home from "../pages/Home.vue"
-import Login from "../pages/Login.vue"
-import Register from "../pages/Register.vue"
-import Menu from "../pages/Menu.vue"
-import Tables from "../pages/Tables.vue"
-import Cart from "../pages/Cart.vue"
-import Checkout from "../pages/Checkout.vue"
-import Success from "../pages/Success.vue"
-import Invoice from "../pages/Invoice.vue"
-import AdminMenu from "../pages/AdminMenu.vue"
-import AdminReservations from "../pages/AdminReservations.vue"
-import AdminTables from "../pages/AdminTables.vue"
-import Dashboard from "../pages/Dashboard.vue"
-import Orders from "../pages/Orders.vue"
+// Lazy loading / code splitting
+const Home = () => import("../pages/Home.vue")
+const Login = () => import("../pages/Login.vue")
+const Register = () => import("../pages/Register.vue")
+const Menu = () => import("../pages/Menu.vue")
+const Tables = () => import("../pages/Tables.vue")
+const Cart = () => import("../pages/Cart.vue")
+const Checkout = () => import("../pages/Checkout.vue")
+const Success = () => import("../pages/Success.vue")
+const Invoice = () => import("../pages/Invoice.vue")
+const AdminMenu = () => import("../pages/AdminMenu.vue")
+const AdminReservations = () => import("../pages/AdminReservations.vue")
+const AdminTables = () => import("../pages/AdminTables.vue")
+const Dashboard = () => import("../pages/Dashboard.vue")
+const Orders = () => import("../pages/Orders.vue")
+const History = () => import("../pages/History.vue")
 
 const routes = [
   // PUBLIC
@@ -27,7 +29,7 @@ const routes = [
   { path: "/checkout", component: Checkout, meta: { requiresAuth: true } },
   { path: "/success", component: Success, meta: { requiresAuth: true } },
   { path: "/invoice", component: Invoice, meta: { requiresAuth: true } },
-  { path: "/history", name: "history", component: () => import("../pages/History.vue"), meta: { requiresAuth: true }},
+  { path: "/history", name: "history", component: History, meta: { requiresAuth: true } },
 
   // ADMIN (protected)
   {
@@ -41,16 +43,16 @@ const routes = [
     meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
   },
   {
-  path: "/menus",
-  component: AdminMenu,
-  meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
-},
-{
-  path: "/reservations",
-  component: AdminReservations,
-  meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
-},
-{
+    path: "/menus",
+    component: AdminMenu,
+    meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
+  },
+  {
+    path: "/reservations",
+    component: AdminReservations,
+    meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
+  },
+  {
     path: "/admin-tables",
     component: AdminTables,
     meta: { requiresAuth: true, adminOnly: true, layout: "admin" },
