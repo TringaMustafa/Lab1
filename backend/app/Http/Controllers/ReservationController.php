@@ -100,6 +100,11 @@ class ReservationController extends Controller
     public function store(Request $request)
     {
         $user = auth('api')->user();
+        if (!$user) {
+    return response()->json([
+        'message' => 'Unauthorized'
+    ], 401);
+}
 
         $data = $request->validate([
             'table_id' => 'required|integer|exists:tables,id',
@@ -177,6 +182,11 @@ class ReservationController extends Controller
     public function myReservations()
     {
         $user = auth('api')->user();
+        if (!$user) {
+    return response()->json([
+        'message' => 'Unauthorized'
+    ], 401);
+}
 
         $reservations = Reservation::with(['table'])
             ->where('user_id', $user->id)
@@ -192,6 +202,11 @@ class ReservationController extends Controller
     public function updateMine(Request $request, Reservation $reservation)
     {
         $user = auth('api')->user();
+        if (!$user) {
+    return response()->json([
+        'message' => 'Unauthorized'
+    ], 401);
+}
 
         if ($reservation->user_id !== $user->id) {
             return response()->json([
